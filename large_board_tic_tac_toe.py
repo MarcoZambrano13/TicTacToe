@@ -15,8 +15,9 @@ PLEASE READ THE COMMENTS BELOW AND THE HOMEWORK DESCRIPTION VERY CAREFULLY BEFOR
  
 """
 import pygame
+import pygame_gui
 import numpy as np
-# from GameStatus_5120 import GameStatus
+from GameStatus_5120 import GameStatus
 # from multiAgents import minimax, negamax
 import sys, random
 
@@ -33,7 +34,7 @@ class RandomBoardTicTacToe:
         self.RED = (255, 0, 0)
 
         # Grid Size
-        self.GRID_SIZE = 4
+        self.GRID_SIZE = 3
         self. OFFSET = 5
 
         self.CIRCLE_COLOR = (140, 146, 172)
@@ -50,6 +51,55 @@ class RandomBoardTicTacToe:
         pygame.init()
         self.game_reset()
 
+    # Draw game menu, set variables
+    def draw_menu(self):
+        clock = pygame.time.Clock()
+
+        manager = pygame_gui.UIManager((600, 600))
+
+        # Create GUI buttons
+        nought_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((0, 0), (100, 50)),
+            text='Nought (O)',
+            manager=manager
+        )
+
+        cross_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((0, 0), (150, 50)),
+            text='Cross (x)',
+            manager=manager
+        )
+
+        human_human_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((0, 0), (200, 50)),
+            text='Human vs Human',
+            manager=manager
+        )
+
+        huam_ai_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((0, 0), (300, 50)),
+            text='Human vs (AI)',
+            manager=manager
+        )
+
+        start_game_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((0, 0), (100, 50)),
+            text='Start Game',
+            manager=manager
+        )
+
+        for event in pygame.event.get():  # User did something
+            # Checking what button the user clicked
+            manager.process_events(event)
+
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == cross_button:
+                    print("Button clicked!")
+
+            time_delta = clock.tick(60) / 1000.0
+            manager.draw_ui(self.screen)
+            manager.update(time_delta)
+
     def draw_game(self):
         # Create a 2 dimensional array using the column and row variables
         pygame.init()
@@ -57,48 +107,67 @@ class RandomBoardTicTacToe:
         pygame.display.set_caption("Tic Tac Toe Random Grid")
         self.screen.fill(self.BLACK)
         # Draw the grid
-
-        list1 = [0, 0, 0]
-        list2 = [0, 0, 0]
-        list3 = [0, 0, 0]
-
-        final = [list1, list2, list3]
+        board_state = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0]
+        ]
 
         screen=pygame.display.set_mode((self.WIDTH,self.HEIGHT))
         screen.fill(self.WHITE)
         pygame.display.flip()
 
 
-        row_offset = 30     # init for default edge spacing
-        for col in range(self.GRID_SIZE):
-            for row in range(self.GRID_SIZE):
-                leftRect = pygame.draw.rect(
-                    screen, 
-                    (255, 0, 0), 
-                    pygame.Rect(30, row_offset, self.WIDTH / 5, self.HEIGHT / 4)
-                )
-
-                middleRect = pygame.draw.rect(
-                    screen, 
-                    (255, 0, 0), 
-                    pygame.Rect(leftRect.topright[0] + self.OFFSET, row_offset, self.WIDTH / 5, self.HEIGHT / 4)
-                )
-
-                rightRect = pygame.draw.rect(
-                    screen, 
-                    (255, 0, 0), 
-                    pygame.Rect(middleRect.topright[0] + self.OFFSET, row_offset, self.WIDTH / 4, self.HEIGHT / 4)
-                )
-            
-            row_offset = rightRect.bottomleft[1] + self.OFFSET
-
-        
-        
         """
         YOUR CODE HERE TO DRAW THE GRID OTHER CONTROLS AS PART OF THE GUI
-        """        
+        """   
+
+        # -- RENDER MAIN MENU --
+
+        # -- CREATE BOARD GRID --     
+        grid_items = []
+        row_offset = 100                             # init for default edge spacing
+
+        for _ in range(self.GRID_SIZE):             # board cols
+            rect = None
+            prevRect = None
+            for row in range(self.GRID_SIZE):       # board rows
+                if (row == 0):
+                    rect = pygame.draw.rect(
+                        screen,
+                        (255, 0, 0),
+                        pygame.Rect(
+                            30,
+                            row_offset, 
+                            self.WIDTH / (self.GRID_SIZE + 1), 
+                            self.HEIGHT / (self.GRID_SIZE + 1)
+                        )
+                    )
+                else:
+                    rect = pygame.draw.rect(
+                        screen,
+                        (255, 0, 0),
+                        pygame.Rect(
+                            prevRect.topright[0] + self.OFFSET, 
+                            row_offset, 
+                            self.WIDTH / (self.GRID_SIZE + 1), 
+                            self.HEIGHT / (self.GRID_SIZE + 1)
+                        )
+                    )
+
+                prevRect = rect
+                grid_items.append(rect)
+
+            row_offset = rect.bottomleft[1] + self.OFFSET
+
         pygame.display.update()
-        self.play_game(mode="player_vs_ai")
+
+        self.draw_menu()
+
+        game_status = GameStatus(board_state=board_state, turn_O=True) # player_one.get("symbol", "") == O
+ 
+        # -- PASS PYGAME RECT ARRAY ALONG WITH GAME STATE TO KEEP TRACK OF CLICKED GRID ITEMS -- 
+        self.play_game(mode="player_vs_ai", grid_items=grid_items, game_status=game_status)       # create players list [player_1_dict, player_2_dict]
 
     def change_turn(self):
 
@@ -118,6 +187,15 @@ class RandomBoardTicTacToe:
         """
         YOUR CODE HERE TO DRAW THE CROSS FOR THE CROSS PLAYER AT THE CELL THAT IS SELECTED VIA THE gui
         """
+        font = pygame.font.Font(None, 150)
+        rendered_text = font.render("X", True, (0, 0,255))
+        self.screen.blit(
+            rendered_text, 
+            (
+                x - (self.OFFSET * (self.GRID_SIZE * 2)), 
+                y - (self.OFFSET * (self.GRID_SIZE * 3))
+            )
+        )
         
 
     def is_game_over(self):
@@ -160,18 +238,22 @@ class RandomBoardTicTacToe:
         
         pygame.display.update()
 
-    def play_game(self, mode = "player_vs_ai"):
-        print("play game")
+    def play_game(
+            self, 
+            grid_items: list[pygame.Rect], 
+            game_status: GameStatus,
+            mode = "player_vs_ai"
+        ):
+
         done = False
-
-        clock = pygame.time.Clock()
-
 
         while not done:
             for event in pygame.event.get():  # User did something
                 """
                 YOUR CODE HERE TO CHECK IF THE USER CLICKED ON A GRID ITEM. EXIT THE GAME IF THE USER CLICKED EXIT
                 """
+
+                # TODO: Handle exit button clicked
                 
                 """
                 YOUR CODE HERE TO HANDLE THE SITUATION IF THE GAME IS OVER. IF THE GAME IS OVER THEN DISPLAY THE SCORE,
@@ -185,11 +267,16 @@ class RandomBoardTicTacToe:
                 PLAY_AI FUNCTION TO LET THE AGENT PLAY AGAINST YOU
                 """
                 
-                # if event.type == pygame.MOUSEBUTTONUP:
+                if event.type == pygame.MOUSEBUTTONUP:
                     # Get the position
+                    xy_pos = event.dict['pos']
+                    # pygame.button
                     
                     # Change the x/y screen coordinates to grid coordinates
-                    
+                    for rect in grid_items:
+                        if rect.collidepoint(xy_pos[0], xy_pos[1]):
+                            self.draw_cross(rect.centerx, rect.centery)
+
                     # Check if the game is human vs human or human vs AI player from the GUI. 
                     # If it is human vs human then your opponent should have the value of the selected cell set to -1
                     # Then draw the symbol for your opponent in the selected cell
