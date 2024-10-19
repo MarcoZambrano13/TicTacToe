@@ -34,6 +34,40 @@ class GameStatus:
 		cols = len(self.board_state[0])
 		scores = 0
 		check_point = 3 if terminal else 2
+
+		# Check rows
+		for row in range(rows):
+			for col in range(cols - (check_point + 1)):
+				if self.board_state[row,col] != 0 and \
+				self.board_state[row, col] == self.board_state[row + 1, col] \
+				== self.board_state[row + 2, col]: 
+					if self.turn_O:
+						scores -= 1
+					else:
+						scores += 1
+						
+
+		# Check columns
+		for col in range(cols):
+			for row in range(rows - (check_point + 1)):
+				if self.board_state[row,col] != 0 and \
+				self.board_state[row, col] == self.board_state[row + 1, col] \
+				== self.board_state[row + 2, col]: 
+					if self.turn_O:
+						scores -= 1
+					else:
+						scores += 1
+		
+		# Check diagonals
+		for row in range(rows):
+			for col in range(cols - (check_point + 1)):
+				if self.board_state[row,col] != 0 and \
+				self.board_state[row, col] == self.board_state[row + 1, col] \
+				== self.board_state[row + 2, col]: 
+					if self.turn_O:
+						scores -= 1
+					else:
+						scores += 1
 		
 	    
 
