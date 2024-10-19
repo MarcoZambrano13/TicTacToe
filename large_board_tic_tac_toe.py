@@ -24,7 +24,7 @@ import sys, random
 mode = "player_vs_ai" # default mode for playing the game (player vs AI)
 
 class RandomBoardTicTacToe:
-    def __init__(self, size = (2400, 2400)):
+    def __init__(self, size = (600, 600)):
 
         self.size = self.width, self.height = size
         # Define some colors
@@ -54,8 +54,11 @@ class RandomBoardTicTacToe:
     # Draw game menu, set variables
     def draw_menu(self):
         clock = pygame.time.Clock()
+        manager = pygame_gui.UIManager(self.size)
 
-        manager = pygame_gui.UIManager((600, 600))
+        started = False
+        turn_O = False
+        mode = "player_vs_ai"
 
         # Create GUI buttons
         nought_button = pygame_gui.elements.UIButton(
@@ -65,40 +68,51 @@ class RandomBoardTicTacToe:
         )
 
         cross_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((0, 0), (150, 50)),
+            relative_rect=pygame.Rect((100, 0), (100, 50)),
             text='Cross (x)',
             manager=manager
         )
 
-        human_human_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((0, 0), (200, 50)),
-            text='Human vs Human',
-            manager=manager
-        )
-
-        huam_ai_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((0, 0), (300, 50)),
-            text='Human vs (AI)',
-            manager=manager
-        )
-
         start_game_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((0, 0), (100, 50)),
+            relative_rect=pygame.Rect((200, 0), (100, 50)),
             text='Start Game',
             manager=manager
         )
 
-        for event in pygame.event.get():  # User did something
-            # Checking what button the user clicked
-            manager.process_events(event)
+        dropdown = pygame_gui.elements.UIDropDownMenu(
+            options_list=["Human vs Human", "Human vs AI"],
+            starting_option='Human vs Human',
+            relative_rect=pygame.Rect((300, 0), (200, 50)),
+            manager=manager
+        )
 
-            if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                if event.ui_element == cross_button:
-                    print("Button clicked!")
-
+        while not started:
             time_delta = clock.tick(60) / 1000.0
-            manager.draw_ui(self.screen)
-            manager.update(time_delta)
+            for event in pygame.event.get():  # User did something
+                # Checking what button the user clicked
+                manager.process_events(event)
+
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == cross_button:
+                        turn_O = False
+                    if event.ui_element == nought_button:
+                        turn_O = True
+                    if event.ui_element == start_game_button:
+                        started = True
+    
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                        if event.text == "Human vs Human":
+                            mode = "player_vs_human"
+                        else:
+                            mode = "player_vs_ai"
+                
+                manager.draw_ui(self.screen)
+                manager.update(time_delta)
+
+            pygame.display.update()
+
+        return { "turn_O": turn_O, "mode": mode }
 
     def draw_game(self):
         # Create a 2 dimensional array using the column and row variables
@@ -131,6 +145,7 @@ class RandomBoardTicTacToe:
         for _ in range(self.GRID_SIZE):             # board cols
             rect = None
             prevRect = None
+            nested_items = []
             for row in range(self.GRID_SIZE):       # board rows
                 if (row == 0):
                     rect = pygame.draw.rect(
@@ -156,21 +171,21 @@ class RandomBoardTicTacToe:
                     )
 
                 prevRect = rect
-                grid_items.append(rect)
+                nested_items.append(rect)
+            grid_items.append(nested_items) 
 
             row_offset = rect.bottomleft[1] + self.OFFSET
 
         pygame.display.update()
 
-        self.draw_menu()
+        settings = self.draw_menu()
 
-        game_status = GameStatus(board_state=board_state, turn_O=True) # player_one.get("symbol", "") == O
+        self.game_state = GameStatus(board_state=board_state, turn_O=settings["turn_O"]) # player_one.get("symbol", "") == O
  
         # -- PASS PYGAME RECT ARRAY ALONG WITH GAME STATE TO KEEP TRACK OF CLICKED GRID ITEMS -- 
-        self.play_game(mode="player_vs_ai", grid_items=grid_items, game_status=game_status)       # create players list [player_1_dict, player_2_dict]
+        self.play_game(mode=settings["mode"], grid_items=grid_items)       # create players list [player_1_dict, player_2_dict]
 
     def change_turn(self):
-
         if(self.game_state.turn_O):
             pygame.display.set_caption("Tic Tac Toe - O's turn")
         else:
@@ -181,6 +196,15 @@ class RandomBoardTicTacToe:
         """
         YOUR CODE HERE TO DRAW THE CIRCLE FOR THE NOUGHTS PLAYER
         """
+        font = pygame.font.Font(None, 150)
+        rendered_text = font.render("O", True, (0, 0,255))
+        self.screen.blit(
+            rendered_text, 
+            (
+                x - (self.OFFSET * (self.GRID_SIZE * 2)), 
+                y - (self.OFFSET * (self.GRID_SIZE * 3))
+            )
+        )
         
 
     def draw_cross(self, x, y):
@@ -241,7 +265,6 @@ class RandomBoardTicTacToe:
     def play_game(
             self, 
             grid_items: list[pygame.Rect], 
-            game_status: GameStatus,
             mode = "player_vs_ai"
         ):
 
@@ -268,14 +291,28 @@ class RandomBoardTicTacToe:
                 """
                 
                 if event.type == pygame.MOUSEBUTTONUP:
-                    # Get the position
+                    # Get the click position
                     xy_pos = event.dict['pos']
-                    # pygame.button
                     
-                    # Change the x/y screen coordinates to grid coordinates
-                    for rect in grid_items:
-                        if rect.collidepoint(xy_pos[0], xy_pos[1]):
-                            self.draw_cross(rect.centerx, rect.centery)
+                    row_number = 0
+                    for row in grid_items:
+                        rect_number = 0
+                        for rect in row:
+                            if rect.collidepoint(xy_pos[0], xy_pos[1]):
+                                if self.game_state.turn_O:
+                                    self.draw_circle(rect.centerx, rect.centery)
+                                    # Using row and col number to update board state value
+                                    self.game_state.board_state[row_number][rect_number] = 1
+                                    self.game_state.turn_O = False
+                                else:
+                                    self.draw_cross(rect.centerx, rect.centery)
+                                    # Using row and col number to update board state value
+                                    self.game_state.board_state[row_number][rect_number] = 2
+                                    self.game_state.turn_O = True
+                            rect_number += 1
+                        row_number += 1
+
+                    self.change_turn()
 
                     # Check if the game is human vs human or human vs AI player from the GUI. 
                     # If it is human vs human then your opponent should have the value of the selected cell set to -1
@@ -287,7 +324,7 @@ class RandomBoardTicTacToe:
 
         pygame.quit()
 
-tictactoegame = RandomBoardTicTacToe()
+tictactoegame = RandomBoardTicTacToe(size = (2400, 2400))
 """
 YOUR CODE HERE TO SELECT THE OPTIONS VIA THE GUI CALLED FROM THE ABOVE LINE
 AFTER THE ABOVE LINE, THE USER SHOULD SELECT THE OPTIONS AND START THE GAME. 
