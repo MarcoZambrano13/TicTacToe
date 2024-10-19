@@ -59,6 +59,7 @@ class RandomBoardTicTacToe:
         started = False
         turn_O = False
         mode = "player_vs_ai"
+        algorithm = "Negamax"
 
         # Create GUI buttons
         nought_button = pygame_gui.elements.UIButton(
@@ -73,46 +74,65 @@ class RandomBoardTicTacToe:
             manager=manager
         )
 
-        start_game_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((200, 0), (100, 50)),
-            text='Start Game',
-            manager=manager
-        )
-
-        dropdown = pygame_gui.elements.UIDropDownMenu(
+        opponent_dropdown = pygame_gui.elements.UIDropDownMenu(
+            object_id="human-v-human-dropdown",
             options_list=["Human vs Human", "Human vs AI"],
             starting_option='Human vs Human',
-            relative_rect=pygame.Rect((300, 0), (200, 50)),
+            relative_rect=pygame.Rect((200, 0), (200, 50)),
+            manager=manager
+        )
+        
+        algo_dropdown = pygame_gui.elements.UIDropDownMenu(
+            object_id="algo-dropdown",
+            options_list=["Negamax", "Minimax"],
+            starting_option='Negamax',
+            relative_rect=pygame.Rect((400, 0), (200, 50)),
+            manager=manager
+        )
+        
+        start_game_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((700, 0), (100, 50)),
+            text='Start Game',
             manager=manager
         )
 
         while not started:
             time_delta = clock.tick(60) / 1000.0
             for event in pygame.event.get():  # User did something
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    ui_elem: pygame_gui.elements.UIButton | pygame_gui.elements.UIDropDownMenu = event.ui_element
+                     
+                    # Handles symbol assignment
+                    if ui_elem == cross_button:
+                        turn_O = False
+                    if ui_elem == nought_button:
+                        turn_O = True
+                        
+                    # implement grid size
+                    
+                    if ui_elem == start_game_button:
+                        started = True
+                        
+                        
+                # Handle dropdown event
+                if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
+                    if event.ui_element == opponent_dropdown:
+                        print(f"Selected: {event.text}")
+                        mode = event.text
+                        # The dropdown will automatically close, no need to manually close it       
+                    if event.ui_element == algo_dropdown:
+                        print(f"Selected: {event.text}")
+                        algorithm = event.text
+                                                
                 # Checking what button the user clicked
                 manager.process_events(event)
-
-                if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    if event.ui_element == cross_button:
-                        turn_O = False
-                    if event.ui_element == nought_button:
-                        turn_O = True
-                    if event.ui_element == start_game_button:
-                        started = True
-    
-                if event.type == pygame.USEREVENT:
-                    if event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                        if event.text == "Human vs Human":
-                            mode = "player_vs_human"
-                        else:
-                            mode = "player_vs_ai"
                 
-                manager.draw_ui(self.screen)
-                manager.update(time_delta)
+            manager.update(time_delta)
+            manager.draw_ui(self.screen)
 
             pygame.display.update()
 
-        return { "turn_O": turn_O, "mode": mode }
+        return { "turn_O": turn_O, "player_mode": mode, "algorithm": algorithm }
 
     def draw_game(self):
         # Create a 2 dimensional array using the column and row variables
