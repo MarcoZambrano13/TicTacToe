@@ -23,7 +23,7 @@ import sys, random
 mode = "player_vs_ai" # default mode for playing the game (player vs AI)
 
 class RandomBoardTicTacToe:
-    def __init__(self, size = (600, 600)):
+    def __init__(self, size = (2400, 2400)):
 
         self.size = self.width, self.height = size
         # Define some colors
@@ -67,16 +67,38 @@ class RandomBoardTicTacToe:
         screen=pygame.display.set_mode((self.WIDTH,self.HEIGHT))
         screen.fill(self.WHITE)
         pygame.display.flip()
-        pygame.draw.line(screen,self.BLACK, (60, 80), (130, 100))
 
 
+        row_offset = 30     # init for default edge spacing
+        for col in range(self.GRID_SIZE):
+            for row in range(self.GRID_SIZE):
+                leftRect = pygame.draw.rect(
+                    screen, 
+                    (255, 0, 0), 
+                    pygame.Rect(30, row_offset, self.WIDTH / 5, self.HEIGHT / 4)
+                )
 
+                middleRect = pygame.draw.rect(
+                    screen, 
+                    (255, 0, 0), 
+                    pygame.Rect(leftRect.topright[0] + self.OFFSET, row_offset, self.WIDTH / 5, self.HEIGHT / 4)
+                )
+
+                rightRect = pygame.draw.rect(
+                    screen, 
+                    (255, 0, 0), 
+                    pygame.Rect(middleRect.topright[0] + self.OFFSET, row_offset, self.WIDTH / 4, self.HEIGHT / 4)
+                )
+            
+            row_offset = rightRect.bottomleft[1] + self.OFFSET
+
+        
         
         """
         YOUR CODE HERE TO DRAW THE GRID OTHER CONTROLS AS PART OF THE GUI
-        """
-        
+        """        
         pygame.display.update()
+        self.play_game(mode="player_vs_ai")
 
     def change_turn(self):
 
