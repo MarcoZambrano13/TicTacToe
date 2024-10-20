@@ -165,10 +165,6 @@ class RandomBoardTicTacToe:
                         grid = event.text
                         self.GRID_SIZE = int(grid[0])
                         board_state = [[0 for _ in range(self.GRID_SIZE)] for _ in range(self.GRID_SIZE)]
-                
-                    print(f"Dropdown state: {ui_elem.current_state.__dict__.get('target_state', None)}")  # Check if it updates
-                    ui_elem.current_state.__dict__.__setitem__('target_state', 'closed')
-                    print(f"Dropdown state: {ui_elem.current_state.__dict__.get('target_state', None)}")  # Check if it updates
                                     
                 manager.process_events(event)
                 manager.update(time_delta)
@@ -262,8 +258,8 @@ class RandomBoardTicTacToe:
         self.screen.blit(
             rendered_text, 
             (
-                x - (self.OFFSET * (self.GRID_SIZE * 2)), 
-                y - (self.OFFSET * (self.GRID_SIZE * 3))
+                x - self.WIDTH*0.05, 
+                y - self.HEIGHT*0.05
             )
         )
         
@@ -277,8 +273,8 @@ class RandomBoardTicTacToe:
         self.screen.blit(
             rendered_text, 
             (
-                x - (self.OFFSET * (self.GRID_SIZE * 2)), 
-                y - (self.OFFSET * (self.GRID_SIZE * 3))
+                x - self.WIDTH*0.04, 
+                y - self.HEIGHT*0.05
             )
         )
 
