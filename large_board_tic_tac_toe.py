@@ -54,12 +54,13 @@ class RandomBoardTicTacToe:
     # Draw game menu, set variables
     def draw_menu(self):
         clock = pygame.time.Clock()
-        manager = pygame_gui.UIManager(self.size)
+        manager = pygame_gui.UIManager(self.size, enable_live_theme_updates=True)
 
         started = False
         turn_O = False
         mode = "player_vs_ai"
         algorithm = "Negamax"
+        grid = "3x3"
 
         # Create GUI buttons
         nought_button = pygame_gui.elements.UIButton(
@@ -87,6 +88,14 @@ class RandomBoardTicTacToe:
             options_list=["Negamax", "Minimax"],
             starting_option='Negamax',
             relative_rect=pygame.Rect((400, 0), (200, 50)),
+            manager=manager
+        )
+        
+        grid_dropdown = pygame_gui.elements.UIDropDownMenu(
+            object_id="grid-dropdown",
+            options_list=["3x3", "4x4", "5x5"],
+            starting_option='3x3',
+            relative_rect=pygame.Rect((600, 0), (100, 50)),
             manager=manager
         )
         
@@ -123,16 +132,63 @@ class RandomBoardTicTacToe:
                     if event.ui_element == algo_dropdown:
                         print(f"Selected: {event.text}")
                         algorithm = event.text
+                        
+                    if event.ui_element == grid_dropdown:
+                        print(f"Selected: {event.text}")
+                        grid = event.text
+                        print("GRID 0: ", grid[0])
+                        self.GRID_SIZE = int(grid[0])
                                                 
                 # Checking what button the user clicked
                 manager.process_events(event)
                 
-            manager.update(time_delta)
-            manager.draw_ui(self.screen)
+                manager.update(time_delta)
+                manager.draw_ui(self.screen)
 
             pygame.display.update()
 
-        return { "turn_O": turn_O, "player_mode": mode, "algorithm": algorithm }
+        return { "turn_O": turn_O, "mode": mode, "algorithm": algorithm, "started": started }
+    
+    def draw_board(self, screen):
+        board_items = []
+        row_offset = 100                            # init for default edge spacing
+
+        for _ in range(self.GRID_SIZE):             # board cols
+            rect = None
+            prevRect = None
+            nested_items = []
+            for row in range(self.GRID_SIZE):       # board rows
+                if (row == 0):
+                    rect = pygame.draw.rect(
+                        self.screen,
+                        (255, 0, 0),
+                        pygame.Rect(
+                            30,
+                            row_offset, 
+                            self.WIDTH / (self.GRID_SIZE + 1), 
+                            self.HEIGHT / (self.GRID_SIZE + 1)
+                        )
+                    )
+                else:
+                    rect = pygame.draw.rect(
+                        screen,
+                        (255, 0, 0),
+                        pygame.Rect(
+                            prevRect.topright[0] + self.OFFSET, 
+                            row_offset, 
+                            self.WIDTH / (self.GRID_SIZE + 1), 
+                            self.HEIGHT / (self.GRID_SIZE + 1)
+                        )
+                    )
+
+                prevRect = rect
+                nested_items.append(rect)
+            board_items.append(nested_items) 
+
+            row_offset = rect.bottomleft[1] + self.OFFSET
+
+        pygame.display.update()
+        return board_items
 
     def draw_game(self):
         # Create a 2 dimensional array using the column and row variables
@@ -157,53 +213,16 @@ class RandomBoardTicTacToe:
         """   
 
         # -- RENDER MAIN MENU --
-
-        # -- CREATE BOARD GRID --     
-        grid_items = []
-        row_offset = 100                             # init for default edge spacing
-
-        for _ in range(self.GRID_SIZE):             # board cols
-            rect = None
-            prevRect = None
-            nested_items = []
-            for row in range(self.GRID_SIZE):       # board rows
-                if (row == 0):
-                    rect = pygame.draw.rect(
-                        screen,
-                        (255, 0, 0),
-                        pygame.Rect(
-                            30,
-                            row_offset, 
-                            self.WIDTH / (self.GRID_SIZE + 1), 
-                            self.HEIGHT / (self.GRID_SIZE + 1)
-                        )
-                    )
-                else:
-                    rect = pygame.draw.rect(
-                        screen,
-                        (255, 0, 0),
-                        pygame.Rect(
-                            prevRect.topright[0] + self.OFFSET, 
-                            row_offset, 
-                            self.WIDTH / (self.GRID_SIZE + 1), 
-                            self.HEIGHT / (self.GRID_SIZE + 1)
-                        )
-                    )
-
-                prevRect = rect
-                nested_items.append(rect)
-            grid_items.append(nested_items) 
-
-            row_offset = rect.bottomleft[1] + self.OFFSET
-
-        pygame.display.update()
-
         settings = self.draw_menu()
+        
+        # -- CREATE BOARD GRID --     
+        board_items = self.draw_board(screen=screen)
 
+        # -- INIT GAMESTATUS WITH EMPTY BOARD AND TURN_0 SETTINGS FROM MENU --
         self.game_state = GameStatus(board_state=board_state, turn_O=settings["turn_O"]) # player_one.get("symbol", "") == O
  
         # -- PASS PYGAME RECT ARRAY ALONG WITH GAME STATE TO KEEP TRACK OF CLICKED GRID ITEMS -- 
-        self.play_game(mode=settings["mode"], grid_items=grid_items)       # create players list [player_1_dict, player_2_dict]
+        self.play_game(mode=settings["mode"], board_items=board_items)       # create players list [player_1_dict, player_2_dict]
 
     def change_turn(self):
         if(self.game_state.turn_O):
@@ -284,7 +303,7 @@ class RandomBoardTicTacToe:
 
     def play_game(
             self, 
-            grid_items: list[pygame.Rect], 
+            board_items: list[pygame.Rect], 
             mode = "player_vs_ai"
         ):
 
@@ -315,7 +334,7 @@ class RandomBoardTicTacToe:
                     xy_pos = event.dict['pos']
                     
                     row_number = 0
-                    for row in grid_items:
+                    for row in board_items:
                         rect_number = 0
                         for rect in row:
                             if rect.collidepoint(xy_pos[0], xy_pos[1]):
