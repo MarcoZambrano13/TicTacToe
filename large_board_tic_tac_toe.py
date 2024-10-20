@@ -61,7 +61,7 @@ class RandomBoardTicTacToe:
         algorithm = "Negamax"
         grid = "3x3"
         
-        selected_color = pygame.Color(50, 20, 120, 100)  # Semi-transparent color
+        selected_color = pygame.Color(0, 50, 255)  # Semi-transparent color
         not_selected_color = pygame.Color(100, 100, 100, 100)  # Semi-transparent color
         
         # Draw the grid
@@ -121,9 +121,10 @@ class RandomBoardTicTacToe:
         )
         
         clock = pygame.time.Clock()
-        time_delta = clock.tick(60) / 1000.0
 
         while not started:
+            time_delta = clock.tick(60) / 1000.0
+             
             for event in pygame.event.get():  # User did something
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     ui_elem: pygame_gui.elements.UIButton | pygame_gui.elements.UIDropDownMenu = event.ui_element
@@ -152,25 +153,29 @@ class RandomBoardTicTacToe:
                         
                 # Handle dropdown event
                 if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                    if event.ui_element == opponent_dropdown:
+                    ui_elem = event.ui_element
+                    
+                    if ui_elem == opponent_dropdown:
                         mode = event.text
                         # The dropdown will automatically close, no need to manually close it       
-                    if event.ui_element == algo_dropdown:
+                    if ui_elem == algo_dropdown:
                         algorithm = event.text
                         
-                    if event.ui_element == grid_dropdown:
+                    if ui_elem == grid_dropdown:
                         grid = event.text
                         self.GRID_SIZE = int(grid[0])
                         board_state = [[0 for _ in range(self.GRID_SIZE)] for _ in range(self.GRID_SIZE)]
-                                                                        
-                # Checking what button the user clicked
-                manager.process_events(event)
                 
+                    print(f"Dropdown state: {ui_elem.current_state.__dict__.get('target_state', None)}")  # Check if it updates
+                    ui_elem.current_state.__dict__.__setitem__('target_state', 'closed')
+                    print(f"Dropdown state: {ui_elem.current_state.__dict__.get('target_state', None)}")  # Check if it updates
+                                    
+                manager.process_events(event)
                 manager.update(time_delta)
                 manager.draw_ui(self.screen)
-
+                
             pygame.display.update()
-
+            
         return { "turn_O": turn_O, "mode": mode, "algorithm": algorithm, "started": started, "board_state": board_state }
     
     def draw_board(self, screen):
