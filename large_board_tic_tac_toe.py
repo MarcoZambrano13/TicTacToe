@@ -53,7 +53,6 @@ class RandomBoardTicTacToe:
 
     # Draw game menu, set variables
     def draw_menu(self):
-        clock = pygame.time.Clock()
         manager = pygame_gui.UIManager(self.size, enable_live_theme_updates=True)
 
         started = False
@@ -111,9 +110,11 @@ class RandomBoardTicTacToe:
             text='Start Game',
             manager=manager
         )
+        
+        clock = pygame.time.Clock()
+        time_delta = clock.tick(60) / 1000.0
 
         while not started:
-            time_delta = clock.tick(60) / 1000.0
             for event in pygame.event.get():  # User did something
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     ui_elem: pygame_gui.elements.UIButton | pygame_gui.elements.UIDropDownMenu = event.ui_element
@@ -141,7 +142,9 @@ class RandomBoardTicTacToe:
                     if event.ui_element == grid_dropdown:
                         grid = event.text
                         self.GRID_SIZE = int(grid[0])
-                        board_state = self.GRID_SIZE*[self.GRID_SIZE*[0]]
+                        board_state = [[0 for _ in range(self.GRID_SIZE)] for _ in range(self.GRID_SIZE)]
+                        
+                print("BOARD STATE: ", board_state)
                                                 
                 # Checking what button the user clicked
                 manager.process_events(event)
