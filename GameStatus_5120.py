@@ -17,11 +17,16 @@ class GameStatus:
 		"""
         YOUR CODE HERE TO CHECK IF ANY CELL IS EMPTY WITH THE VALUE 0. IF THERE IS NO EMPTY
         THEN YOU SHOULD ALSO RETURN THE WINNER OF THE GAME BY CHECKING THE SCORES FOR EACH PLAYER 
-        """
-		
+    """
+		for row in self.board_state:
+			for square in row:
+				if square == 0:
+					return False
+		return self.get_scores()
 		
 
-	def get_scores(self, terminal):
+	# Removing terminal for now because im confused by that
+	def get_scores(self): 
 		"""
         YOUR CODE HERE TO CALCULATE THE SCORES. MAKE SURE YOU ADD THE SCORE FOR EACH PLAYER BY CHECKING 
         EACH TRIPLET IN THE BOARD IN EACH DIRECTION (HORIZONAL, VERTICAL, AND ANY DIAGONAL DIRECTION)
@@ -33,41 +38,51 @@ class GameStatus:
 		rows = len(self.board_state)
 		cols = len(self.board_state[0])
 		scores = 0
-		check_point = 3 if terminal else 2
+		# check_point = 3 if terminal else 2 
 
 		# Check rows
 		for row in range(rows):
-			for col in range(cols - (check_point + 1)):
-				if self.board_state[row,col] != 0 and \
-				self.board_state[row, col] == self.board_state[row + 1, col] \
-				== self.board_state[row + 2, col]: 
-					if self.turn_O:
+			for col in range(cols - 2):
+				if self.board_state[row][col] != 0 and \
+				(self.board_state[row][col] == self.board_state[row][col + 1] == self.board_state[row][col + 2]): 
+					if self.board_state[row][col] == 1:
 						scores -= 1
 					else:
 						scores += 1
 						
 
 		# Check columns
-		for col in range(cols):
-			for row in range(rows - (check_point + 1)):
-				if self.board_state[row,col] != 0 and \
-				self.board_state[row, col] == self.board_state[row + 1, col] \
-				== self.board_state[row + 2, col]: 
-					if self.turn_O:
+		for row in range(rows - 2):
+			for col in range(cols):
+				if self.board_state[row][col] != 0 and \
+				(self.board_state[row][col] == self.board_state[row + 1][col] == self.board_state[row + 2][col]): 
+					if self.board_state[row][col] == 1:
 						scores -= 1
 					else:
 						scores += 1
 		
-		# Check diagonals
-		for row in range(rows):
-			for col in range(cols - (check_point + 1)):
-				if self.board_state[row,col] != 0 and \
-				self.board_state[row, col] == self.board_state[row + 1, col] \
-				== self.board_state[row + 2, col]: 
-					if self.turn_O:
+		# Check diagonals from the left
+		for row in range(rows - 2):
+			for col in range(cols - 2):
+				if self.board_state[row][col] != 0 and \
+				(self.board_state[row][col] == self.board_state[row + 1][col + 1] == self.board_state[row + 2][col + 2]): 
+					if self.board_state[row][col] == 1:
 						scores -= 1
 					else:
 						scores += 1
+		
+		# Reverse rows and check diagonals from the right side
+		reversed_board_state = [list(reversed(row)) for row in self.board_state]
+		for row in range(rows - 2):
+			for col in range(cols - 2):
+				if reversed_board_state[row][col] != 0 and \
+				(reversed_board_state[row][col] == reversed_board_state[row + 1][col + 1] == reversed_board_state[row + 2][col + 2]): 
+					if reversed_board_state[row][col] == 1:
+						scores -= 1
+					else:
+						scores += 1
+
+		return scores
 		
 	    
 
