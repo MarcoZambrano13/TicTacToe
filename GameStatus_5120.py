@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 
 
 class GameStatus:
@@ -105,16 +106,17 @@ class GameStatus:
         YOUR CODE HERE TO ADD ALL THE NON EMPTY CELLS TO MOVES VARIABLES AND RETURN IT TO BE USE BY YOUR
         MINIMAX OR NEGAMAX FUNCTIONS
         """
-		for row in range(self.board_state):
-			for col in range(self.board_state):
-				if (self.board_state[row, col] != 0):
-					moves.append(row, col)
+		for col in range(len(self.board_state)):
+			for row in range(len(self.board_state[0])):
+				if (self.board_state[col][row] == 0):
+					moves.append([row, col])
 
 		return moves
 
 
 	def get_new_state(self, move):
-		new_board_state = self.board_state.copy()
+		new_board_state = copy.deepcopy(self.board_state)
 		x, y = move[0], move[1]
-		new_board_state[x,y] = 1 if self.turn_O else -1
+		new_board_state[y][x] = 1 if self.turn_O else -1
+  
 		return GameStatus(new_board_state, not self.turn_O)

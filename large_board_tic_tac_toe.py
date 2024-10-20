@@ -18,7 +18,7 @@ import pygame
 import pygame_gui
 import numpy as np
 from GameStatus_5120 import GameStatus
-# from multiAgents import minimax, negamax
+from multiAgents import minimax, negamax
 import sys, random
 
 mode = "player_vs_ai" # default mode for playing the game (player vs AI)
@@ -326,12 +326,15 @@ class RandomBoardTicTacToe:
         NUMBER AND MOVE IS AN X,Y LOCATION RETURNED BY THE AGENT
         """
         
+        max_depth = len(self.game_state.get_moves())
+        minimax_return = minimax(self.game_state, max_depth, True)
+        
         self.change_turn()
         pygame.display.update()
         terminal = self.game_state.is_terminal()
         """ USE self.game_state.get_scores(terminal) HERE TO COMPUTE AND DISPLAY THE FINAL SCORES """
 
-
+        return minimax_return[1]
 
     def game_reset(self):
         self.draw_game()
@@ -372,6 +375,25 @@ class RandomBoardTicTacToe:
                 DRAW CROSS (OR NOUGHT DEPENDING ON WHICH SYMBOL YOU CHOSE FOR YOURSELF FROM THE gui) AND CALL YOUR 
                 PLAY_AI FUNCTION TO LET THE AGENT PLAY AGAINST YOU
                 """
+                
+                # print("Board state: ", self.game_state.board_state)
+                                
+                if (mode == "player_vs_ai" and len(self.game_state.get_moves()) < 9 and len(self.game_state.get_moves()) % 2 == 0):
+                    ai_move = self.play_ai()
+                    
+                    if (ai_move):
+                        print("AI MOVE: ", ai_move)
+                        ai_move_x_pos = ai_move[0]
+                        ai_move_y_pos = ai_move[1]
+                        
+                        ai_rect = board_items[ai_move_y_pos][ai_move_x_pos]
+                        self.draw_circle(ai_rect.centerx, ai_rect.centery) if self.game_state.turn_O else self.draw_cross(ai_rect.centerx, ai_rect.centery)
+                        # Using row and col number to update board state value
+                        self.game_state.board_state[ai_move_y_pos][ai_move_x_pos] = 1 if self.game_state.turn_O else 2
+                        self.game_state.turn_O = not self.game_state.turn_O
+                        print("Board state: ", self.game_state.board_state)
+        
+                        
                 if event.type == pygame.MOUSEBUTTONUP:
                     # Get the click position
                     xy_pos = event.dict['pos']
@@ -393,7 +415,7 @@ class RandomBoardTicTacToe:
                                     self.game_state.turn_O = True
                             rect_number += 1
                         row_number += 1
-
+                    
                     self.change_turn()
 
                     # Check if the game is human vs human or human vs AI player from the GUI. 

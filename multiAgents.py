@@ -2,37 +2,58 @@ from GameStatus_5120 import GameStatus
 
 
 def minimax(game_state: GameStatus, depth: int, maximizingPlayer: bool, alpha=float('-inf'), beta=float('inf')):
-	terminal = game_state.is_terminal()
-	if (depth==0) or (terminal):
-		newScores = game_state.get_scores(terminal)
-		return newScores, None
-
 	"""
-    YOUR CODE HERE TO FIRST CHECK WHICH PLAYER HAS CALLED THIS FUNCTION (MAXIMIZING OR MINIMIZING PLAYER)
-    YOU SHOULD THEN IMPLEMENT MINIMAX WITH ALPHA-BETA PRUNING AND RETURN THE FOLLOWING TWO ITEMS
-    1. VALUE
-    2. BEST_MOVE
+		YOUR CODE HERE TO FIRST CHECK WHICH PLAYER HAS CALLED THIS FUNCTION (MAXIMIZING OR MINIMIZING PLAYER)
+		YOU SHOULD THEN IMPLEMENT MINIMAX WITH ALPHA-BETA PRUNING AND RETURN THE FOLLOWING TWO ITEMS
+		1. VALUE
+		2. BEST_MOVE
+
+		THE LINE TO RETURN THESE TWO IS COMMENTED BELOW WHICH YOU CAN USE
+	"""
     
-    THE LINE TO RETURN THESE TWO IS COMMENTED BELOW WHICH YOU CAN USE
-    """
-	if (maximizingPlayer):
-		best_move = alpha
-		for move in game_state.get_moves():
-			value = minimax(game_state.get_new_state(), depth + 1, False, alpha, beta)
-			best_move = max(best_move, value)
-			alpha = max(alpha, best_move)
-			if beta <= alpha:
-				break
+	# Check for terminal state (win, loss, or draw) or depth limit
+	terminal = game_state.is_terminal()
+	if (depth == 0) or terminal:
+		# Return the evaluation score and no move, as the game is terminal
+		return game_state.get_scores(), None
+	
+	if maximizingPlayer:
+		best_value = float('-inf')
+		best_move = None
+		moves = game_state.get_moves()
+		for move in moves:
+				# Simulate move and get new game state
+				new_game_state = game_state.get_new_state(move)
+				# Recursively call minimax on the new state with depth reduced and the minimizing player
+				value, _ = minimax(new_game_state, depth - 1, False, alpha, beta)
+				# Compare value to find the best one for maximizing player
+				if value > best_value:
+						best_value = value
+						best_move = move
+				# Update alpha and check for pruning
+				alpha = max(alpha, best_value)
+				if beta <= alpha:
+						break
+		return best_value, best_move
+
 	else:
-		best_move = beta
-		for move in game_state.get_moves():
-			value = minimax(game_state.get_new_state(), depth + 1, True, alpha, beta)
-			best_move = min(best_move, value)
-			beta = max(beta, best_move)
-			if beta <= alpha:
-				break
-	      
-	return value, best_move
+		best_value = float('inf')
+		best_move = None
+		moves = game_state.get_moves()
+		for move in moves:
+				# Simulate move and get new game state
+				new_game_state = game_state.get_new_state(move)
+				# Recursively call minimax on the new state with depth reduced and the maximizing player
+				value, _ = minimax(new_game_state, depth - 1, True, alpha, beta)
+				# Compare value to find the best one for minimizing player
+				if value < best_value:
+						best_value = value
+						best_move = move
+				# Update beta and check for pruning
+				beta = min(beta, best_value)
+				if beta <= alpha:
+						break
+		return best_value, best_move
 
 def negamax(game_status: GameStatus, depth: int, turn_multiplier: int, alpha=float('-inf'), beta=float('inf')):
 	terminal = game_status.is_terminal()
@@ -54,5 +75,4 @@ def negamax(game_status: GameStatus, depth: int, turn_multiplier: int, alpha=flo
 	for move in game_status.get_moves():
 		value = -negamax(game_status.get_new_state(), depth + 1, True, alpha, beta)
 		best_move = min(best_move, value)
-		
-        return value, best_move
+		return value, best_move
