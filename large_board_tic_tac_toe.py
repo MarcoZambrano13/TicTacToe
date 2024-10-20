@@ -208,7 +208,6 @@ class RandomBoardTicTacToe:
                 prevRect = rect
                 nested_items.append(rect)
             board_items.append(nested_items) 
-
             row_offset = rect.bottomleft[1] + self.OFFSET
 
         pygame.display.update()
@@ -277,6 +276,17 @@ class RandomBoardTicTacToe:
                 y - (self.OFFSET * (self.GRID_SIZE * 3))
             )
         )
+
+    def draw_winner(self, text):
+        font = pygame.font.Font(None, 50)
+        rendered_text = font.render(text, True, (0, 0,255))
+        self.screen.blit(
+            rendered_text, 
+            (
+                250, 
+                55
+            )
+        )
         
 
     def is_game_over(self):
@@ -289,14 +299,14 @@ class RandomBoardTicTacToe:
         """
         # False until a stalemate or a winner
         stalemate_or_winner = False
-        if(self.game_state.is_terminal()):
+        if(self.game_state.is_terminal() != False):
             score = self.game_state.is_terminal()
             if score > 0:
-                "Human won!"
+                stalemate_or_winner = "Human won!"
             elif score < 0:
-                "AI won..."
-            else:
-                "Its a draw."
+                stalemate_or_winner = "AI won..."
+            elif score == 0:
+                stalemate_or_winner = "Its a draw."
         return stalemate_or_winner
         
     
@@ -341,7 +351,8 @@ class RandomBoardTicTacToe:
 
         while not done:
             if(self.is_game_over() != False):
-                done = True
+                winner_or_stalemate = self.is_game_over()
+                self.draw_winner(winner_or_stalemate)
             for event in pygame.event.get():  # User did something
                 """
                 YOUR CODE HERE TO CHECK IF THE USER CLICKED ON A GRID ITEM. EXIT THE GAME IF THE USER CLICKED EXIT
@@ -360,7 +371,6 @@ class RandomBoardTicTacToe:
                 DRAW CROSS (OR NOUGHT DEPENDING ON WHICH SYMBOL YOU CHOSE FOR YOURSELF FROM THE gui) AND CALL YOUR 
                 PLAY_AI FUNCTION TO LET THE AGENT PLAY AGAINST YOU
                 """
-                
                 if event.type == pygame.MOUSEBUTTONUP:
                     # Get the click position
                     xy_pos = event.dict['pos']
