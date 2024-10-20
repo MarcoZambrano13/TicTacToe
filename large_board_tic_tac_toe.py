@@ -143,8 +143,6 @@ class RandomBoardTicTacToe:
                         grid = event.text
                         self.GRID_SIZE = int(grid[0])
                         board_state = [[0 for _ in range(self.GRID_SIZE)] for _ in range(self.GRID_SIZE)]
-                        
-                print("BOARD STATE: ", board_state)
                                                 
                 # Checking what button the user clicked
                 manager.process_events(event)
@@ -270,6 +268,18 @@ class RandomBoardTicTacToe:
         
         YOUR RETURN VALUE SHOULD BE TRUE OR FALSE TO BE USED IN OTHER PARTS OF THE GAME
         """
+        # False until a stalemate or a winner
+        stalemate_or_winner = False
+        if(self.game_state.is_terminal()):
+            score = self.game_state.is_terminal()
+            if score > 0:
+                "Human won!"
+            elif score < 0:
+                "AI won..."
+            else:
+                "Its a draw."
+        return stalemate_or_winner
+        
     
 
     def move(self, move):
@@ -311,6 +321,8 @@ class RandomBoardTicTacToe:
         done = False
 
         while not done:
+            if(self.is_game_over() != False):
+                done = True
             for event in pygame.event.get():  # User did something
                 """
                 YOUR CODE HERE TO CHECK IF THE USER CLICKED ON A GRID ITEM. EXIT THE GAME IF THE USER CLICKED EXIT
