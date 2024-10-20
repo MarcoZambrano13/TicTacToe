@@ -61,6 +61,13 @@ class RandomBoardTicTacToe:
         mode = "player_vs_ai"
         algorithm = "Negamax"
         grid = "3x3"
+        
+        # Draw the grid
+        board_state = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0]
+        ]
 
         # Create GUI buttons
         nought_button = pygame_gui.elements.UIButton(
@@ -126,18 +133,15 @@ class RandomBoardTicTacToe:
                 # Handle dropdown event
                 if event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
                     if event.ui_element == opponent_dropdown:
-                        print(f"Selected: {event.text}")
                         mode = event.text
                         # The dropdown will automatically close, no need to manually close it       
                     if event.ui_element == algo_dropdown:
-                        print(f"Selected: {event.text}")
                         algorithm = event.text
                         
                     if event.ui_element == grid_dropdown:
-                        print(f"Selected: {event.text}")
                         grid = event.text
-                        print("GRID 0: ", grid[0])
                         self.GRID_SIZE = int(grid[0])
+                        board_state = self.GRID_SIZE*[self.GRID_SIZE*[0]]
                                                 
                 # Checking what button the user clicked
                 manager.process_events(event)
@@ -147,7 +151,7 @@ class RandomBoardTicTacToe:
 
             pygame.display.update()
 
-        return { "turn_O": turn_O, "mode": mode, "algorithm": algorithm, "started": started }
+        return { "turn_O": turn_O, "mode": mode, "algorithm": algorithm, "started": started, "board_state": board_state }
     
     def draw_board(self, screen):
         board_items = []
@@ -196,12 +200,6 @@ class RandomBoardTicTacToe:
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("Tic Tac Toe Random Grid")
         self.screen.fill(self.BLACK)
-        # Draw the grid
-        board_state = [
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0]
-        ]
 
         screen=pygame.display.set_mode((self.WIDTH,self.HEIGHT))
         screen.fill(self.WHITE)
@@ -219,7 +217,7 @@ class RandomBoardTicTacToe:
         board_items = self.draw_board(screen=screen)
 
         # -- INIT GAMESTATUS WITH EMPTY BOARD AND TURN_0 SETTINGS FROM MENU --
-        self.game_state = GameStatus(board_state=board_state, turn_O=settings["turn_O"]) # player_one.get("symbol", "") == O
+        self.game_state = GameStatus(board_state=settings["board_state"], turn_O=settings["turn_O"]) # player_one.get("symbol", "") == O
  
         # -- PASS PYGAME RECT ARRAY ALONG WITH GAME STATE TO KEEP TRACK OF CLICKED GRID ITEMS -- 
         self.play_game(mode=settings["mode"], board_items=board_items)       # create players list [player_1_dict, player_2_dict]
