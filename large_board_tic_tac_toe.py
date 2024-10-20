@@ -300,8 +300,8 @@ class RandomBoardTicTacToe:
         """
         # False until a stalemate or a winner
         stalemate_or_winner = False
-        if(self.game_state.is_terminal() != False):
-            score = self.game_state.is_terminal()
+        score = self.game_state.is_terminal()
+        if(not (isinstance(score, bool))):
             if score > 0:
                 stalemate_or_winner = "Human won!"
             elif score < 0:
