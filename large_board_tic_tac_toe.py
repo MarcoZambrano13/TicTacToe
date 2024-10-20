@@ -61,6 +61,9 @@ class RandomBoardTicTacToe:
         algorithm = "Negamax"
         grid = "3x3"
         
+        selected_color = pygame.Color(50, 20, 120, 100)  # Semi-transparent color
+        not_selected_color = pygame.Color(100, 100, 100, 100)  # Semi-transparent color
+        
         # Draw the grid
         board_state = [
             [0, 0, 0],
@@ -80,6 +83,12 @@ class RandomBoardTicTacToe:
             text='Cross (x)',
             manager=manager
         )
+                
+        cross_button.colours['normal_bg'] = selected_color
+        cross_button.rebuild()
+        
+        nought_button.colours['normal_bg'] = not_selected_color
+        nought_button.rebuild()
 
         opponent_dropdown = pygame_gui.elements.UIDropDownMenu(
             object_id="human-v-human-dropdown",
@@ -122,11 +131,21 @@ class RandomBoardTicTacToe:
                     # Handles symbol assignment
                     if ui_elem == cross_button:
                         turn_O = False
+                        cross_button.colours['normal_bg'] = selected_color
+                        nought_button.colours['normal_bg'] = not_selected_color
+                        
+                        cross_button.rebuild()
+                        nought_button.rebuild()  # This triggers the button to redraw itself based on its new state
+                        
                     if ui_elem == nought_button:
                         turn_O = True
+                        nought_button.colours['normal_bg'] = selected_color
+                        cross_button.colours['normal_bg'] = not_selected_color
                         
-                    # implement grid size
-                    
+                        nought_button.rebuild()
+                        cross_button.rebuild()  # This triggers the button to redraw itself based on its new state
+
+
                     if ui_elem == start_game_button:
                         started = True
                         
