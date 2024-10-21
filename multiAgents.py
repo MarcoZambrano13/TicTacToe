@@ -17,43 +17,31 @@ def minimax(game_state: GameStatus, depth: int, maximizingPlayer: bool, alpha=fl
 		# Return the evaluation score and no move, as the game is terminal
 		return game_state.get_scores(), None
 	
-	if maximizingPlayer:
-		best_value = float('-inf')
-		best_move = None
-		moves = game_state.get_moves()
-		for move in moves:
-				# Simulate move and get new game state
-				new_game_state = game_state.get_new_state(move)
-				# Recursively call minimax on the new state with depth reduced and the minimizing player
-				value, _ = minimax(new_game_state, depth - 1, False, alpha, beta)
-				# Compare value to find the best one for maximizing player
-				if value > best_value:
-						best_value = value
-						best_move = move
-				# Update alpha and check for pruning
-				alpha = max(alpha, best_value)
-				if beta <= alpha:
-						break
-		return best_value, best_move
+	# Check if maximizing or minimizing
+	if (maximizingPlayer):
+		best_move = float('-inf')
 
+		# Maximizing agent
+		for move in game_state.get_moves():
+			new_game_state = game_state.get_new_state(move)
+			value = minimax(new_game_state, depth + 1, False, alpha, beta)
+			best_move = max(best_move, value)
+			if best_move >= beta:
+				return best_move
+			alpha = max(alpha, best_move)
 	else:
-		best_value = float('inf')
-		best_move = None
-		moves = game_state.get_moves()
-		for move in moves:
-				# Simulate move and get new game state
-				new_game_state = game_state.get_new_state(move)
-				# Recursively call minimax on the new state with depth reduced and the maximizing player
-				value, _ = minimax(new_game_state, depth - 1, True, alpha, beta)
-				# Compare value to find the best one for minimizing player
-				if value < best_value:
-						best_value = value
-						best_move = move
-				# Update beta and check for pruning
-				beta = min(beta, best_value)
-				if beta <= alpha:
-						break
-		return best_value, best_move
+		best_move = float('inf')
+
+		# Minimizing agent
+		for move in game_state.get_moves():
+			new_game_state = game_state.get_new_state(move)
+			value = minimax(new_game_state, depth + 1, False, alpha, beta)
+			best_move = min(best_move, value)
+			if best_move <= alpha:
+				return best_move
+			beta = min(beta, best_move)
+	      
+	return value, best_move
 
 def negamax(game_status: GameStatus, depth: int, turn_multiplier: int, alpha=float('-inf'), beta=float('inf')):
 	terminal = game_status.is_terminal()
